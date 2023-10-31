@@ -1,6 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-
 from views.user import create_user, login_user
 from views import create_post, update_post, delete_post, get_all_posts, get_posts_by_user_id, get_single_post
 
@@ -54,18 +53,21 @@ class HandleRequests(BaseHTTPRequestHandler):
         """Handle Get requests to the server"""
         response = {}
         parsed = self.parse_url()
-        if '?' not in parsed:
+        if '?' not in self.path:
             (resource, id) = parsed
             if resource == 'posts':
                 if id is not None:
                     response = get_single_post(id)
+                    self._set_headers(200)
                 else:
                     response = get_all_posts()
+                    self._set_headers(200)
         else:
             (resource, key, value) = parsed
             if resource == 'posts':
                 if key == "user_id":
                     response = get_posts_by_user_id(value)
+                    self._set_headers(200)
                 
         
         self.wfile.write(json.dumps(response).encode())
@@ -86,7 +88,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == 'posts':
             response = create_post(post_body)
 
-        self.wfile.write(response.encode())
+        self.wfile.write(json.dumps(response).encode())
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
