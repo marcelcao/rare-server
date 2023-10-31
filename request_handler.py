@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 from views.user import create_user, login_user
+from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -50,9 +51,20 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle Get requests to the server"""
-        pass
+        """Handles GET request to server"""
+        self._set_headers(200)
+        response = {}
 
+        (resource, key, value) = self.parse_url()
+
+        if resource == "tags":
+            if id is not None:
+                response = get_single_tag(id)
+
+            else:
+                response = get_all_tags()
+
+        self.wfile.write(json.dumps(response).encode())
 
     def do_POST(self):
         """Make a post request to the server"""
@@ -60,7 +72,10 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = json.loads(self.rfile.read(content_len))
         response = ''
-        resource, _ = self.parse_url()
+        resource, key, value = self.parse_url()
+        
+        #Initialize new Tag
+        new_tag = None
 
         if resource == 'login':
             response = login_user(post_body)
@@ -68,14 +83,42 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_user(post_body)
 
         self.wfile.write(response.encode())
+        
+        if resource == 'tags':
+            new_tag = create_tag(post_body)
+            self.wfile.write(json.dumps(new_tag).encode())
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
-        pass
+        
+        content_len = int(self.headers.get('content-length', 0))
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
+
+        (resource, key, value) = self.parse_url()
+
+        success = False
+       
+        if resource == 'tags':
+            success = update_tag(id, post_body)
+
+        if success:
+            self._set_headers(204)
+        else:
+            self._set_headers(404)
+
+        self.wfile.write("".encode())
 
     def do_DELETE(self):
         """Handle DELETE Requests"""
-        pass
+        self._set_headers(204)
+
+        (resource, key, value) = self.parse_url()
+
+        # Delete a single animal from the list
+        if resource == "tags":
+            delete_tag(id)
+        self.wfile.write("".encode())
 
 
 def main():
