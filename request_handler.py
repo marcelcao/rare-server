@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 from views.user import create_user, login_user
-from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag, get_tag_by_label
+from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -67,12 +67,6 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_tags()
 
-        else:
-            (resource, key, value) = parsed
-            if resource == 'tags':
-                if key == "id":
-                    response = get_tag_by_label(value)
-
         self.wfile.write(json.dumps(response).encode())
 
     def do_POST(self):
@@ -95,15 +89,14 @@ class HandleRequests(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
-        
+
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
 
-        (resource, key, value) = self.parse_url()
-
+        (resource, id) = self.parse_url()
         success = False
-       
+
         if resource == 'tags':
             success = update_tag(id, post_body)
 
@@ -118,7 +111,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         """Handle DELETE Requests"""
         self._set_headers(204)
 
-        (resource, key, value) = self.parse_url()
+        (resource, id) = self.parse_url()
 
         # Delete a single animal from the list
         if resource == "tags":
