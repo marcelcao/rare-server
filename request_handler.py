@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 from views.user import create_user, login_user
-from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
+from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag, get_tag_by_label
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -55,14 +55,23 @@ class HandleRequests(BaseHTTPRequestHandler):
         self._set_headers(200)
         response = {}
 
-        (resource, key, value) = self.parse_url()
+        parsed = self.parse_url()
 
-        if resource == "tags":
-            if id is not None:
-                response = get_single_tag(id)
+        if '?' not in self.path:
+            (resource, id) = parsed
 
-            else:
-                response = get_all_tags()
+            if resource == 'tags':
+                if id is not None:
+                    response = get_single_tag(id)
+
+                else:
+                    response = get_all_tags()
+
+        else:
+            (resource, key, value) = parsed
+            if resource == 'tags':
+                if key == "id":
+                    response = get_tag_by_label(value)
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -72,21 +81,17 @@ class HandleRequests(BaseHTTPRequestHandler):
         content_len = int(self.headers.get('content-length', 0))
         post_body = json.loads(self.rfile.read(content_len))
         response = ''
-        resource, key, value = self.parse_url()
-        
-        #Initialize new Tag
-        new_tag = None
+        resource, _ = self.parse_url()
 
         if resource == 'login':
             response = login_user(post_body)
         if resource == 'register':
             response = create_user(post_body)
+        if resource == 'tags':
+            response = create_tag(post_body)
 
         self.wfile.write(response.encode())
-        
-        if resource == 'tags':
-            new_tag = create_tag(post_body)
-            self.wfile.write(json.dumps(new_tag).encode())
+
 
     def do_PUT(self):
         """Handles PUT requests to the server"""

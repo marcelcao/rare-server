@@ -50,10 +50,10 @@ def create_tag(new_tag):
 
         db_cursor.execute("""
         INSERT INTO Tags
-            ( label)
+            (label)
         VALUES
-            ( ?);
-        """, (new_tag['label']))
+            (?);
+        """, (new_tag['label'],))
 
         id = db_cursor.lastrowid
         new_tag['id'] = id
@@ -89,3 +89,27 @@ def update_tag(id, new_tag):
         return False
     else:
         return True
+
+def get_tag_by_label(label):
+    """Query for customer email address"""
+    with sqlite3.connect("./kennel.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        # Write the SQL query to get the information you want
+        db_cursor.execute("""
+        select
+            c.id,
+            c.label
+        from Tags t
+        WHERE t.label = ?
+        """, ( label, ))
+
+        labels = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            label = Tag(row['id'], row['label'])
+            labels.append(label.__dict__)
+
+    return labels
