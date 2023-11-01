@@ -3,6 +3,7 @@ import json
 
 from views.user import create_user, login_user
 from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
+from views import get_all_post_tags, get_single_post_tag, create_post_tag, delete_post_tag, update_post_tag
 
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -63,9 +64,14 @@ class HandleRequests(BaseHTTPRequestHandler):
             if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
+            
+            if resource == 'posttags':
+                if id is not None:
+                    response = get_single_post_tag(id)
 
                 else:
                     response = get_all_tags()
+                    response = get_all_post_tags
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -83,6 +89,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_user(post_body)
         if resource == 'tags':
             response = create_tag(post_body)
+        if resource == 'posttags':
+            response = create_post_tag(post_body)
 
         self.wfile.write(response.encode())
 
@@ -99,6 +107,9 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         if resource == 'tags':
             success = update_tag(id, post_body)
+        
+        if resource == 'posttags':
+            success = update_post_tag(id, post_body)
 
         if success:
             self._set_headers(204)
@@ -113,9 +124,11 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         (resource, id) = self.parse_url()
 
-        # Delete a single animal from the list
         if resource == "tags":
             delete_tag(id)
+        if resource == "posttags":
+            delete_post_tag(id)
+        
         self.wfile.write("".encode())
 
 
