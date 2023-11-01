@@ -113,7 +113,6 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         (resource, id) = self.parse_url()
 
-        # Delete a single animal from the list
         if resource == "tags":
             delete_tag(id)
         self.wfile.write("".encode())
