@@ -76,12 +76,8 @@ class HandleRequests(BaseHTTPRequestHandler):
                 if key == "user_id":
                     response = get_posts_by_user_id(value)
                     self._set_headers(200)
-                
-        
+ 
         self.wfile.write(json.dumps(response).encode())
-
-
-
 
     def do_POST(self):
         """Make a post request to the server"""
@@ -124,8 +120,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         
         self.wfile.write("".encode())
 
-       
-
     def do_DELETE(self):
         """Handle DELETE Requests"""
         (resource, id) = self.parse_url()
@@ -137,8 +131,6 @@ class HandleRequests(BaseHTTPRequestHandler):
             self._set_headers(204)
             
         self.wfile.write("".encode())
-            
-
 
 def main():
     """Starts the server on port 8088 using the HandleRequests class
