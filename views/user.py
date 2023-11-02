@@ -69,3 +69,4 @@ def create_user(user):
             'token': id,
             'valid': True
         })
+
