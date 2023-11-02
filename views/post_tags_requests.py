@@ -79,7 +79,7 @@ def update_post_tag(id, new_post_tag):
         db_cursor = conn.cursor()
 
         db_cursor.execute("""
-        UPDATE Tags
+        UPDATE PostTags
             SET
                 post_id = ?,
                 tag_id = ?

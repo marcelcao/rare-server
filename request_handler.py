@@ -142,8 +142,10 @@ class HandleRequests(BaseHTTPRequestHandler):
             self._set_headers(204)
         if resource == "tags":
             delete_tag(id)
+            self._set_headers(204)
         if resource == "posttags":
             delete_post_tag(id)
+            self._set_headers(204)
         
         self.wfile.write("".encode())
 
