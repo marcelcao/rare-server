@@ -66,8 +66,10 @@ class HandleRequests(BaseHTTPRequestHandler):
             if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
+                    self._set_headers(200)
                 else:
                     response = get_all_tags()
+                    self._set_headers(200)
         else:
             (resource, key, value) = parsed
             if resource == 'posts':
@@ -132,6 +134,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             self._set_headers(204)
         if resource == "tags":
             delete_tag(id)
+            self._set_headers(204)
             
         self.wfile.write("".encode())
             
