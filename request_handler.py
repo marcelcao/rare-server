@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 
 from views.user import create_user, login_user
-
+from views.comment_requests import get_all_comments, get_single_comment, create_comment, delete_comment, update_comment
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
@@ -50,8 +50,26 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle Get requests to the server"""
-        pass
+        self._set_headers(200)
+
+        response = {}
+
+        # Parse URL and store entire tuple in a variable
+        parsed = self.parse_url()
+
+        # If the path does not include a query parameter, continue with the original if block
+        if '?' not in self.path:
+            ( resource, id ) = parsed
+
+            # It's an if..else statement
+            if resource == "comments":
+                if id is not None:
+                    response = get_single_comment(id)
+
+                else:
+                    response = get_all_comments()
+                    
+        self.wfile.write(json.dumps(response).encode())
 
 
     def do_POST(self):
@@ -66,16 +84,37 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = login_user(post_body)
         if resource == 'register':
             response = create_user(post_body)
+        if resource == 'comments':
+            response == create_comment(post_body)
 
-        self.wfile.write(response.encode())
+        self.wfile.write(json.dumps(response).encode())
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
-        pass
+        content_len = int(self.headers.get('content-length', 0))
+        comment_body = self.rfile.read(content_len)
+        comment_body = json.loads(comment_body)
+        
+        (resource, id) = self.parse_url()
+        
+        if resource == "comments":
+            success = update_comment(id, comment_body)
+        
+        if success:
+            self._set_headers(204)
+        else:
+            self._set_headers(404)
+        
+        self.wfile.write("".encode())
 
     def do_DELETE(self):
         """Handle DELETE Requests"""
-        pass
+        (resource, id) = self.parse_url()
+        if resource == "comments":
+            delete_comment(id)
+            self._set_headers(204)
+            
+        self.wfile.write("".encode())
 
 
 def main():
