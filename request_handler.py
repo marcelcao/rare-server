@@ -1,18 +1,20 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 from views import (
+    create_user,
+    login_user,
+    get_single_user,
+    get_all_users,
+    update_user,
+    delete_user
+    )
+from views import (
     create_post,
     update_post,
     delete_post,
     get_all_posts,
     get_posts_by_user_id,
     get_single_post,
-    create_user,
-    login_user,
-    get_single_user,
-    get_all_users,
-    update_user,
-    delete_user,
 )
 from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
 from urllib.parse import urlparse, parse_qs
@@ -81,6 +83,14 @@ class HandleRequests(BaseHTTPRequestHandler):
         if "?" not in self.path:
             (resource, id) = parsed
             
+            if resource == 'users':
+                if id is not None:
+                    response = get_single_user(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_users()
+                    self._set_headers(200)    
+            
             if resource == 'posts':
                 if id is not None:
                     response = get_single_post(id)
@@ -89,8 +99,6 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = get_all_posts()
                     self._set_headers(200)
             if resource == "tags":
-                    
-            if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
                     self._set_headers(200)
@@ -144,10 +152,9 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = login_user(post_body)
         if resource == "register":
             response = create_user(post_body)
-        if resource == "posts":
         if resource == 'comments':
             response == create_comment(post_body)
-        if resource == 'posts':
+        if resource == "posts":
             response = create_post(post_body)
         if resource == "tags":
             response = create_tag(post_body)
@@ -166,6 +173,8 @@ class HandleRequests(BaseHTTPRequestHandler):
 
         (resource, id) = self.parse_url()
         success = False
+        if resource == "users":
+            success = update_user(id,post_body)
 
         if resource == "posts":
             success = update_post(id, post_body)
