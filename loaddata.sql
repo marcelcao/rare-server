@@ -88,3 +88,4 @@ CREATE TABLE "Categories" (
 INSERT INTO Categories ('label') VALUES ('News');
 INSERT INTO Tags ('label') VALUES ('JavaScript');
 INSERT INTO Reactions ('label', 'image_url') VALUES ('happy', 'https://pngtree.com/so/happy');
+INSERT INTO Users VALUES (null,'Kirthana','Sukumaran','kirthana@gmail.com','I am a coder','kirthana07','password','','20180901',1)

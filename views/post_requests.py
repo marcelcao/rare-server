@@ -16,7 +16,7 @@ def get_all_posts():
             a.publication_date,
             a.image_url,
             a.content
-        FROM posts a    
+        FROM Posts a    
         """
         # JOIN user u
         # ON u.id = a.user_id

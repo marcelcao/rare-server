@@ -124,3 +124,35 @@ def create_user(user):
             'valid': True
         })
 
+def update_user(id, new_user):
+    with sqlite3.connect('./db.sqlite3') as conn:
+        db_cursor = conn.cursor()
+        db_cursor.execute("""
+        UPDATE Users
+            SET
+                first_name = ?,
+                last_name = ?,
+                email = ?,
+                bio = ?,
+                username = ?,
+                password = ?,
+                profile_image_url = ?,
+                created_on = ?,
+                active = ?
+        WHERE id = ?
+        """, (new_user['id'],new_user['first_name'],new_user['last_name'],new_user['email'],new_user['bio'],new_user['username'],new_user['password'],new_user['profile_image_url'],new_user['created_on'],new_user['active']))
+        
+        rows_affected = db_cursor.rowcount
+        
+        if rows_affected == 0:
+            return False
+        else:
+            return True
+        
+def delete_user(id):
+    with sqlite3.connect('./db.sqlite3') as conn:
+        db_cursor = conn.cursor()
+        db_cursor.execute("""
+        DELETE FROM Users
+        WHERE id = ?
+        """, (id,))        
