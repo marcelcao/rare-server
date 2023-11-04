@@ -3,6 +3,19 @@ import json
 from views.user import create_user, login_user
 from views import create_post, update_post, delete_post, get_all_posts, get_posts_by_user_id, get_single_post
 from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
+from urllib.parse import urlparse, parse_qs
+from views import (
+    get_all_reactions,
+    get_single_reaction,
+    get_all__post_reactions,
+    get_single_post_reaction,
+    delete_reaction,
+    delete_post_reaction,
+    create_reaction,
+    create_post_reaction,
+    update_reaction,
+    update_post_reaction
+)
 from views.comment_requests import get_all_comments, get_single_comment, create_comment, delete_comment, update_comment
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -51,7 +64,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle Get requests to the server"""
+
         response = {}
         parsed = self.parse_url()
         if '?' not in self.path:
@@ -70,6 +83,24 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_tags()
                     self._set_headers(200)
+                    
+            if resource == "reactions":
+                if id is not None:
+                    response = get_single_reaction(id)
+                    self._set_headers(200)
+
+                else:
+                    response = get_all_reactions()
+                    self._set_headers(200)
+
+            if resource == "postreactions":
+                if id is not None:
+                    response = get_single_post_reaction(id)
+                    self._set_headers(200)
+
+                else:
+                    response = get_all__post_reactions()
+                    self._set_headers(200)
                 if resource == "comments":
                     if id is not None:
                         response = get_single_comment(id)
@@ -81,7 +112,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 if key == "user_id":
                     response = get_posts_by_user_id(value)
                     self._set_headers(200)
- 
+
         self.wfile.write(json.dumps(response).encode())
 
     def do_POST(self):
@@ -102,31 +133,38 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_post(post_body)
         if resource == 'tags':
             response = create_tag(post_body)
+        if resource == 'reactions':
+            response = create_reaction(post_body)
+        if resource == 'postreactions':
+            response = create_post_reaction(post_body)
 
         self.wfile.write(json.dumps(response).encode())
-
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
         post_body = json.loads(post_body)
-        
+
         (resource, id) = self.parse_url()
         success = False
-        
+
         if resource == "posts":
             success = update_post(id, post_body)
         if resource == 'tags':
             success = update_tag(id, post_body)
+        if resource == "reactions":
+            success = update_reaction(id, post_body)
+        if resource == "postreactions":
+            success = update_post_reaction(id, post_body)
         if resource == "comments":
             success = update_comment(id, comment_body)
-        
+
         if success:
             self._set_headers(204)
         else:
             self._set_headers(404)
-        
+
         self.wfile.write("".encode())
 
     def do_DELETE(self):
@@ -138,9 +176,14 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "tags":
             delete_tag(id)
             self._set_headers(204)
+        if resource == "reactions":
+            delete_reaction(id)
+            self._set_headers(204)
+        if resource == "postreactions":
+            delete_post_reaction(id)
         if resource == "comments":
             delete_comment(id)
-            self._set_headers(204)    
+            self._set_headers(204)    self._set_headers(204)
         self.wfile.write("".encode())
 
 def main():
