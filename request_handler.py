@@ -168,11 +168,9 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "posts":
             success = update_post(id, post_body)
         if resource == 'tags':
-            success = update_tag(id, post_body)
-        
+            success = update_tag(id, post_body)     
         if resource == 'posttags':
             success = update_post_tag(id, post_body)
-
         if resource == "reactions":
             success = update_reaction(id, post_body)
         if resource == "postreactions":
