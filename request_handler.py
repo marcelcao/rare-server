@@ -15,7 +15,20 @@ from views import (
     delete_user,
 )
 from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
-
+from urllib.parse import urlparse, parse_qs
+from views import (
+    get_all_reactions,
+    get_single_reaction,
+    get_all__post_reactions,
+    get_single_post_reaction,
+    delete_reaction,
+    delete_post_reaction,
+    create_reaction,
+    create_post_reaction,
+    update_reaction,
+    update_post_reaction
+)
+from views.comment_requests import get_all_comments, get_single_comment, create_comment, delete_comment, update_comment
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
@@ -62,20 +75,13 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        """Handle Get requests to the server"""
+
         response = {}
         parsed = self.parse_url()
         if "?" not in self.path:
             (resource, id) = parsed
-
-            if resource == "users":
-                if id is not None:
-                    response = get_single_user(id)
-                    self._set_headers(200)
-                else:
-                    response = get_all_users()
-                    self._set_headers(200)
-            if resource == "posts":
+            
+            if resource == 'posts':
                 if id is not None:
                     response = get_single_post(id)
                     self._set_headers(200)
@@ -83,11 +89,39 @@ class HandleRequests(BaseHTTPRequestHandler):
                     response = get_all_posts()
                     self._set_headers(200)
             if resource == "tags":
+                    
+            if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
                     self._set_headers(200)
                 else:
                     response = get_all_tags()
+                    self._set_headers(200)
+                    
+            if resource == "reactions":
+                if id is not None:
+                    response = get_single_reaction(id)
+                    self._set_headers(200)
+
+                else:
+                    response = get_all_reactions()
+                    self._set_headers(200)
+
+            if resource == "postreactions":
+                if id is not None:
+                    response = get_single_post_reaction(id)
+                    self._set_headers(200)
+
+                else:
+                    response = get_all__post_reactions()
+                    self._set_headers(200)
+                    
+            if resource == "comments":
+                if id is not None:
+                    response = get_single_comment(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_comments()
                     self._set_headers(200)
         else:
             (resource, key, value) = parsed
@@ -111,9 +145,16 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "register":
             response = create_user(post_body)
         if resource == "posts":
+        if resource == 'comments':
+            response == create_comment(post_body)
+        if resource == 'posts':
             response = create_post(post_body)
         if resource == "tags":
             response = create_tag(post_body)
+        if resource == 'reactions':
+            response = create_reaction(post_body)
+        if resource == 'postreactions':
+            response = create_post_reaction(post_body)
 
         self.wfile.write(json.dumps(response).encode())
 
@@ -126,12 +167,16 @@ class HandleRequests(BaseHTTPRequestHandler):
         (resource, id) = self.parse_url()
         success = False
 
-        if resource == "users":
-            success = update_user(id, post_body)
         if resource == "posts":
             success = update_post(id, post_body)
         if resource == "tags":
             success = update_tag(id, post_body)
+        if resource == "reactions":
+            success = update_reaction(id, post_body)
+        if resource == "postreactions":
+            success = update_post_reaction(id, post_body)
+        if resource == "comments":
+            success = update_comment(id, post_body)
 
         if success:
             self._set_headers(204)
@@ -153,7 +198,14 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "tags":
             delete_tag(id)
             self._set_headers(204)
-
+        if resource == "reactions":
+            delete_reaction(id)
+            self._set_headers(204)
+        if resource == "postreactions":
+            delete_post_reaction(id)
+        if resource == "comments":
+            delete_comment(id)
+            self._set_headers(204)
         self.wfile.write("".encode())
 
 
