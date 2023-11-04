@@ -1,7 +1,8 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
-
 from views.user import create_user, login_user
+from views import create_post, update_post, delete_post, get_all_posts, get_posts_by_user_id, get_single_post
+from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
 from views.comment_requests import get_all_comments, get_single_comment, create_comment, delete_comment, update_comment
 
 class HandleRequests(BaseHTTPRequestHandler):
@@ -50,27 +51,38 @@ class HandleRequests(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        self._set_headers(200)
-
+        """Handle Get requests to the server"""
         response = {}
-
-        # Parse URL and store entire tuple in a variable
         parsed = self.parse_url()
-
-        # If the path does not include a query parameter, continue with the original if block
         if '?' not in self.path:
-            ( resource, id ) = parsed
-
-            # It's an if..else statement
-            if resource == "comments":
+            (resource, id) = parsed
+            if resource == 'posts':
                 if id is not None:
-                    response = get_single_comment(id)
-
+                    response = get_single_post(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_posts()
+                    self._set_headers(200)
+            if resource == 'tags':
+                if id is not None:
+                    response = get_single_tag(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_tags()
+                    self._set_headers(200)
+                if resource == "comments":
+                    if id is not None:
+                        response = get_single_comment(id)
                 else:
                     response = get_all_comments()
-                    
+        else:
+            (resource, key, value) = parsed
+            if resource == 'posts':
+                if key == "user_id":
+                    response = get_posts_by_user_id(value)
+                    self._set_headers(200)
+ 
         self.wfile.write(json.dumps(response).encode())
-
 
     def do_POST(self):
         """Make a post request to the server"""
@@ -86,17 +98,27 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_user(post_body)
         if resource == 'comments':
             response == create_comment(post_body)
+        if resource == 'posts':
+            response = create_post(post_body)
+        if resource == 'tags':
+            response = create_tag(post_body)
 
         self.wfile.write(json.dumps(response).encode())
+
 
     def do_PUT(self):
         """Handles PUT requests to the server"""
         content_len = int(self.headers.get('content-length', 0))
-        comment_body = self.rfile.read(content_len)
-        comment_body = json.loads(comment_body)
+        post_body = self.rfile.read(content_len)
+        post_body = json.loads(post_body)
         
         (resource, id) = self.parse_url()
+        success = False
         
+        if resource == "posts":
+            success = update_post(id, post_body)
+        if resource == 'tags':
+            success = update_tag(id, post_body)
         if resource == "comments":
             success = update_comment(id, comment_body)
         
@@ -110,12 +132,16 @@ class HandleRequests(BaseHTTPRequestHandler):
     def do_DELETE(self):
         """Handle DELETE Requests"""
         (resource, id) = self.parse_url()
+        if resource == "posts":
+            delete_post(id)
+            self._set_headers(204)
+        if resource == "tags":
+            delete_tag(id)
+            self._set_headers(204)
         if resource == "comments":
             delete_comment(id)
-            self._set_headers(204)
-            
+            self._set_headers(204)    
         self.wfile.write("".encode())
-
 
 def main():
     """Starts the server on port 8088 using the HandleRequests class
