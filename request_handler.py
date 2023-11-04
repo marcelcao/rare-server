@@ -69,6 +69,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         parsed = self.parse_url()
         if '?' not in self.path:
             (resource, id) = parsed
+            
             if resource == 'posts':
                 if id is not None:
                     response = get_single_post(id)
@@ -76,6 +77,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_posts()
                     self._set_headers(200)
+                    
             if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
@@ -101,11 +103,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all__post_reactions()
                     self._set_headers(200)
-                if resource == "comments":
-                    if id is not None:
-                        response = get_single_comment(id)
+                    
+            if resource == "comments":
+                if id is not None:
+                    response = get_single_comment(id)
+                    self._set_headers(200)
                 else:
                     response = get_all_comments()
+                    self._set_headers(200)
         else:
             (resource, key, value) = parsed
             if resource == 'posts':
@@ -158,7 +163,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "postreactions":
             success = update_post_reaction(id, post_body)
         if resource == "comments":
-            success = update_comment(id, comment_body)
+            success = update_comment(id, post_body)
 
         if success:
             self._set_headers(204)
@@ -183,7 +188,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             delete_post_reaction(id)
         if resource == "comments":
             delete_comment(id)
-            self._set_headers(204)    self._set_headers(204)
+            self._set_headers(204)
         self.wfile.write("".encode())
 
 def main():
