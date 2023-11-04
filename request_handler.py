@@ -16,6 +16,7 @@ from views import (
     update_reaction,
     update_post_reaction
 )
+from views.comment_requests import get_all_comments, get_single_comment, create_comment, delete_comment, update_comment
 
 class HandleRequests(BaseHTTPRequestHandler):
     """Handles the requests to this server"""
@@ -68,6 +69,7 @@ class HandleRequests(BaseHTTPRequestHandler):
         parsed = self.parse_url()
         if '?' not in self.path:
             (resource, id) = parsed
+            
             if resource == 'posts':
                 if id is not None:
                     response = get_single_post(id)
@@ -75,6 +77,7 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_posts()
                     self._set_headers(200)
+                    
             if resource == 'tags':
                 if id is not None:
                     response = get_single_tag(id)
@@ -100,6 +103,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all__post_reactions()
                     self._set_headers(200)
+                    
+            if resource == "comments":
+                if id is not None:
+                    response = get_single_comment(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_comments()
+                    self._set_headers(200)
         else:
             (resource, key, value) = parsed
             if resource == 'posts':
@@ -121,6 +132,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = login_user(post_body)
         if resource == 'register':
             response = create_user(post_body)
+        if resource == 'comments':
+            response == create_comment(post_body)
         if resource == 'posts':
             response = create_post(post_body)
         if resource == 'tags':
@@ -149,6 +162,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             success = update_reaction(id, post_body)
         if resource == "postreactions":
             success = update_post_reaction(id, post_body)
+        if resource == "comments":
+            success = update_comment(id, post_body)
 
         if success:
             self._set_headers(204)
@@ -171,6 +186,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             self._set_headers(204)
         if resource == "postreactions":
             delete_post_reaction(id)
+        if resource == "comments":
+            delete_comment(id)
             self._set_headers(204)
         self.wfile.write("".encode())
 
