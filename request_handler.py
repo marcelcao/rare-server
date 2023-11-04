@@ -186,7 +186,6 @@ class HandleRequests(BaseHTTPRequestHandler):
         success = False
         if resource == "users":
             success = update_user(id,post_body)
-
         if resource == "posts":
             success = update_post(id, post_body)
         if resource == "tags":
