@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+from urllib.parse import urlparse, parse_qs
 from views import (
     create_user,
     login_user,
@@ -17,7 +18,7 @@ from views import (
     get_single_post,
 )
 from views import get_all_tags, get_single_tag, create_tag, delete_tag, update_tag
-from urllib.parse import urlparse, parse_qs
+from views import get_all_post_tags, get_single_post_tag, create_post_tag, delete_post_tag, update_post_tag
 from views import (
     get_all_reactions,
     get_single_reaction,
@@ -105,6 +106,14 @@ class HandleRequests(BaseHTTPRequestHandler):
                 else:
                     response = get_all_tags()
                     self._set_headers(200)
+            
+            if resource == 'posttags':
+                if id is not None:
+                    response = get_single_post_tag(id)
+                    self._set_headers(200)
+                else:
+                    response = get_all_post_tags()
+                    self._set_headers(200)
                     
             if resource == "reactions":
                 if id is not None:
@@ -158,6 +167,8 @@ class HandleRequests(BaseHTTPRequestHandler):
             response = create_post(post_body)
         if resource == "tags":
             response = create_tag(post_body)
+        if resource == 'posttags':
+            response = create_post_tag(post_body)
         if resource == 'reactions':
             response = create_reaction(post_body)
         if resource == 'postreactions':
@@ -175,11 +186,12 @@ class HandleRequests(BaseHTTPRequestHandler):
         success = False
         if resource == "users":
             success = update_user(id,post_body)
-
         if resource == "posts":
             success = update_post(id, post_body)
         if resource == "tags":
-            success = update_tag(id, post_body)
+            success = update_tag(id, post_body)     
+        if resource == 'posttags':
+            success = update_post_tag(id, post_body)
         if resource == "reactions":
             success = update_reaction(id, post_body)
         if resource == "postreactions":
@@ -207,11 +219,15 @@ class HandleRequests(BaseHTTPRequestHandler):
         if resource == "tags":
             delete_tag(id)
             self._set_headers(204)
+        if resource == "posttags":
+            delete_post_tag(id)
+            self._set_headers(204)
         if resource == "reactions":
             delete_reaction(id)
             self._set_headers(204)
         if resource == "postreactions":
             delete_post_reaction(id)
+            self._set_headers(204)
         if resource == "comments":
             delete_comment(id)
             self._set_headers(204)
