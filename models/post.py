@@ -7,4 +7,7 @@ class Post():
         self.publication_date = publication_date
         self.image_url = image_url
         self.content = content
+        self.comments = None
+        self.post_tags = None
+        self.post_reactions = None
     

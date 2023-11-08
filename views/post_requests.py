@@ -1,6 +1,8 @@
 import sqlite3
 import json
 from models.post import Post
+from models.user import User
+from models.comment import Comment
 
 def get_all_posts():
     with sqlite3.connect('./db.sqlite3') as conn:
@@ -15,14 +17,31 @@ def get_all_posts():
             a.title,
             a.publication_date,
             a.image_url,
-            a.content
-        FROM Posts a    
+            a.content,
+            c.id,
+            c.author_id,
+            c.content,
+            u.username,
+            u.profile_image_url
+            u.first_name,
+            u.last_name,
+            u.id,
+            u.email,
+            u.bio,
+            u.username,
+            u.password,
+            u.profile_image_url,
+            u.created_on,
+            u.active
+        FROM Posts a
+        JOIN comments c
+            ON c.post_id = a.id
+        JOIN users u
+            ON u.id = a.user_id
         """
-        # JOIN user u
-        # ON u.id = a.user_id
-        # JOIN category c
-        # ON c.id = a.category_id
+        
         )
+        
         
         posts = []
         
@@ -30,12 +49,17 @@ def get_all_posts():
         
         for row in dataset:
             post = Post(row['id'], row['user_id'], row['category_id'], row['title'], row['publication_date'], row['image_url'], row['content'])
+            # post_tags = get_post_tags_by_post_id(row['id'])
+            # post.post_tags = post_tags
             
             # adds user and category to post
-            # user = User(row['id'], row['first_name'], row['last_name'], row['email'], row['bio'], row['username'], user['password'], row['profile_image_url'], row['created_on'])
+            user = User(row['id'], row['first_name'], row['last_name'], row['email'], row['bio'], row['username'], user['password'], row['profile_image_url'], row['created_on'], row['active'])
             # category = Category(row['id'], row['label'])
             # post.user = user.__dict__
             # post.category = category.__dict__
+            
+            comment = Comment(row['id'], row['author_id'], row['content'])
+            #
             
             posts.append(post.__dict__)
         
@@ -56,19 +80,20 @@ def get_single_post(id):
             a.image_url,
             a.content
         FROM posts a
-        WHERE a.id = ?                  
+        WHERE a.id = ?
+        JOIN user u
+            ON u.id = a.user_id  
         """, (id, ))
         
         # FROM post a
-        # JOIN user u
-        # ON u.id = a.user_id
-        # JOIN category c
-        # ON c.id = a.category_id
+        # post_tags = get_posttags_by_post_id(id)
+        
+        
         
         data = db_cursor.fetchone()
         
         post = Post(data['id'], data['user_id'], data['category_id'], data['title'], data['publication_date'], data['image_url'], data['content'])
-        
+        # post.post_tags = post_tags
         return post.__dict__
 
 def get_posts_by_user_id(user_id):
