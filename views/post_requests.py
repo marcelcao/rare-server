@@ -8,6 +8,7 @@ def get_all_posts():
     with sqlite3.connect('./db.sqlite3') as conn:
         conn.row_factory = sqlite3.Row
         db_cursor = conn.cursor()
+        db_cursor_comments = conn.cursor()
         
         db_cursor.execute("""
         SELECT
@@ -18,11 +19,8 @@ def get_all_posts():
             a.publication_date,
             a.image_url,
             a.content,
-            c.id,
-            c.author_id,
-            c.content,
             u.username,
-            u.profile_image_url
+            u.profile_image_url,
             u.first_name,
             u.last_name,
             u.id,
@@ -34,12 +32,9 @@ def get_all_posts():
             u.created_on,
             u.active
         FROM Posts a
-        JOIN comments c
-            ON c.post_id = a.id
         JOIN users u
             ON u.id = a.user_id
         """
-        
         )
         
         
@@ -48,19 +43,46 @@ def get_all_posts():
         dataset = db_cursor.fetchall()
         
         for row in dataset:
-            post = Post(row['id'], row['user_id'], row['category_id'], row['title'], row['publication_date'], row['image_url'], row['content'])
-            # post_tags = get_post_tags_by_post_id(row['id'])
-            # post.post_tags = post_tags
+            post = Post(row['id'], row['user_id'], row['title'], row['publication_date'], row['image_url'], row['content'])
+            post_author = User(row['user_id'], row['first_name'], row['last_name'], row['email'], row['bio'], row['username'], row['password'], row['profile_image_url'], row['created_on'], row['active'])
+            post.author = post_author.get_username()
             
-            # adds user and category to post
-            user = User(row['id'], row['first_name'], row['last_name'], row['email'], row['bio'], row['username'], user['password'], row['profile_image_url'], row['created_on'], row['active'])
-            # category = Category(row['id'], row['label'])
-            # post.user = user.__dict__
-            # post.category = category.__dict__
+            # get assosciated comments section
+            db_cursor_comments.execute("""
+            SELECT
+                c.id,
+                c.post_id,
+                c.author_id,
+                c.content,
+                u.username,
+                u.profile_image_url,
+                u.first_name,
+                u.last_name,
+                u.id,
+                u.email,
+                u.bio,
+                u.username,
+                u.password,
+                u.profile_image_url,
+                u.created_on,
+                u.active
+            FROM comments c
+            JOIN users u
+                ON u.id = c.author_id
+            WHERE c.post_id = ?
+            """, ((row['id']), ))
             
-            comment = Comment(row['id'], row['author_id'], row['content'])
+            post_comments = []
+            comments_dataset = db_cursor_comments.fetchall()
+            
+            for comment_row in comments_dataset:
+                comment = Comment(comment_row['id'], comment_row['author_id'], comment_row['post_id'], comment_row['content'])
+                comment_author = User(comment_row['author_id'],comment_row['first_name'], comment_row['last_name'],comment_row['email'],comment_row['bio'],comment_row['username'],comment_row['password'],comment_row['profile_image_url'],comment_row['created_on'],comment_row['active'])
+                comment.author = comment_author.get_username()
+                post_comments.append(comment.__dict__)
             #
             
+            post.comments = post_comments
             posts.append(post.__dict__)
         
         return posts
@@ -92,7 +114,7 @@ def get_single_post(id):
         
         data = db_cursor.fetchone()
         
-        post = Post(data['id'], data['user_id'], data['category_id'], data['title'], data['publication_date'], data['image_url'], data['content'])
+        post = Post(data['id'], data['user_id'], data['title'], data['publication_date'], data['image_url'], data['content'])
         # post.post_tags = post_tags
         return post.__dict__
 
@@ -119,7 +141,7 @@ def get_posts_by_user_id(user_id):
         dataset = db_cursor.fetchall()
         
         for row in dataset:
-            post = Post(row['id'], row['user_id'], row['category_id'], row['title'], row['publication_date'], row['image_url'], row['content'])
+            post = Post(row['id'], row['user_id'], row['title'], row['publication_date'], row['image_url'], row['content'])
             posts.append(post.__dict__)
             
         return posts
@@ -131,10 +153,10 @@ def create_post(new_post):
         
         db_cursor.execute("""
         INSERT INTO posts
-            (user_id, category_id, title, publication_date, image_url, content)
+            (user_id, title, publication_date, image_url, content)
         VALUES
-            (?, ?, ?, ?, ?, ?)                  
-        """, (new_post['user_id'], new_post['category_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content']))
+            (?, ?, ?, ?, ?)                  
+        """, (new_post['user_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content']))
         
         id = db_cursor.lastrowid
         
@@ -150,13 +172,12 @@ def update_post(id, new_post):
         UPDATE posts
             SET
                 user_id = ?,
-                category_id = ?,
                 title = ?,
                 publication_date = ?,
                 image_url = ?,
                 content = ?
         WHERE id = ?
-        """, (new_post['user_id'], new_post['category_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content'], id, ))
+        """, (new_post['user_id'], new_post['title'], new_post['publication_date'], new_post['image_url'], new_post['content'], id, ))
 
         rows_affected = db_cursor.rowcount
         
