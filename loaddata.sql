@@ -92,3 +92,15 @@ INSERT INTO `Comments` VALUES (1, 4, 5, "Wow!");
 INSERT INTO `Comments` VALUES (2, 8, 10, "So cool.");
 INSERT INTO `Posts` VALUES (1, 2, 3, "Title", 12, "imgur.com", "Content", 1);
 INSERT INTO Users VALUES (null,'Kirthana','Sukumaran','kirthana@gmail.com','I am a coder','kirthana07','password','','20180901',1)
+
+
+SELECT
+    a.id,
+    a.reaction_id,
+    a.user_id,
+    a.post_id
+    r.
+FROM postreactions a
+JOIN reactions r
+    ON r.id = a.reaction_id
+WHERE post_id = 1

@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import PostReaction
+from models import PostReaction, Reaction
 
 def get_all__post_reactions():
     with sqlite3.connect("./db.sqlite3") as conn:
@@ -47,8 +47,43 @@ def get_single_post_reaction(id):
 
         post_reaction = PostReaction(data['id'],
                                      data['reaction_id'], data['user_id'], data['post_id'])
-
         return post_reaction.__dict__
+    
+
+def get_post_reactions_by_post_id(id):
+    with sqlite3.connect('./db.sqlite3') as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+        
+        db_cursor.execute("""
+        SELECT
+            a.id,
+            a.reaction_id,
+            a.user_id,
+            a.post_id,
+            r.id,
+            r.label,
+            r.image_url
+        FROM postreactions a
+        JOIN reactions r
+            ON r.id = a.reaction_id
+        WHERE post_id = ?
+        """, ((id), ))
+
+        postreactions = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            post_reaction = PostReaction(row['id'],
+                                         row['reaction_id'], row['user_id'], row['post_id'])
+            
+            reaction = Reaction(row['id'], row['label'], row['image_url'])
+            
+            post_reaction.reaction = reaction.__dict__
+            postreactions.append(post_reaction.__dict__)
+
+    return postreactions
+        
 
 
 def create_post_reaction(new_post_reaction):
