@@ -2,6 +2,7 @@ import sqlite3
 import json
 from .comment_requests import get_comments_by_post_id
 from .post_reaction_requests import get_post_reactions_by_post_id
+from .post_tags_requests import get_post_tags_by_post_id
 from models.post import Post
 from models.user import User
 from models.comment import Comment
@@ -52,8 +53,13 @@ def get_all_posts():
             # get assosciated comments section
             post_comments = get_comments_by_post_id(row['id'])
             post.comments = post_comments
+            
             post_reactions = get_post_reactions_by_post_id(row['id'])
             post.post_reactions = post_reactions
+            
+            post_tags = get_post_tags_by_post_id(row['id'])
+            post.post_tags = post_tags
+            
             posts.append(post.__dict__)
         
         return posts
@@ -90,13 +96,6 @@ def get_single_post(id):
         WHERE a.id = ?
         """, (id, ))
         
-        
-        
-        # FROM post a
-        # post_tags = get_posttags_by_post_id(id)
-        
-        
-        
         data = db_cursor.fetchone()
         
         post = Post(data['id'], data['user_id'], data['title'], data['publication_date'], data['image_url'], data['content'])
@@ -105,9 +104,13 @@ def get_single_post(id):
         
         comments = get_comments_by_post_id(data['id'])
         post.comments = comments
+        
         post_reactions = get_post_reactions_by_post_id(data['id'])
         post.post_reactions = post_reactions
-        # post.post_tags = post_tags
+
+        post_tags = get_post_tags_by_post_id(data['id'])
+        post.post_tags = post_tags
+        
         return post.__dict__
 
 def get_posts_by_user_id(user_id):
