@@ -23,6 +23,6 @@ class User:
         self.created_on = created_on
         self.active = active
         
-    def get_username(self):
+    def get_username_and_id(self):
         """returns the username of the username in a dictionary"""
-        return {"username": self.username}
+        return {"id": self.id, "username": self.username}

@@ -1,6 +1,6 @@
 import sqlite3
 import json
-from models import PostTag
+from models import PostTag, Tag
 
 def get_all_post_tags():
     """Fetches all post tags"""
@@ -44,6 +44,35 @@ def get_single_post_tag(id):
         post_tag = PostTag(data['id'], data['post_id'], data['tag_id'])
 
         return post_tag.__dict__
+    
+def get_post_tags_by_post_id(id):
+    with sqlite3.connect("./db.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        SELECT
+            pt.id,
+            pt.post_id,
+            pt.tag_id,
+            t.id,
+            t.label
+        FROM PostTags pt
+        JOIN tags t
+            ON pt.tag_id = t.id
+        WHERE post_id = ?
+        """, ((id), ))
+
+        post_tags = []
+        dataset = db_cursor.fetchall()
+
+        for row in dataset:
+            post_tag = PostTag(row['id'], row['post_id'], row ['tag_id'])
+            tag = Tag(row['id'], row['label'])
+            post_tag.tag = tag.__dict__
+            post_tags.append(post_tag.__dict__)
+
+    return post_tags
 
 def create_post_tag(new_post_tag):
     """Creates a new post tag"""
